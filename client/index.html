@@ -6,15 +6,24 @@
     <link rel="stylesheet" href="styles/styles.css">
 
     <!-- dependencies -->
-    <script src="bower_components/jquery/jquery.min.js"></script>
+    <script src="bower_components/jquery/jquery.js"></script>
+    <script src="bower_components/underscore/underscore-min.js"></script>
     <!-- your scripts -->
     <script src="env/config.js"></script>
     <script src="scripts/app.js"></script>
+    <script type="text/javascript">
+    $(document).ready(function(){
+      app.fetch();
+    });
+    </script>
   </head>
   <body>
     <div id="main">
       <h1>chatterbox</h1>
-      <!-- Your HTML goes here! -->
+      <input type="text" placeholder="Send your message here"></input>
+      <a href="#" class="sendChat">Send message</a>
+      <div id="chats">
+      </div>
     </div>
   </body>
 </html>
