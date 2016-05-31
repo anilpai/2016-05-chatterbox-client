@@ -1,16 +1,16 @@
 var App = function(){
-  var self = {};
+  var thiz = {};
 
-  self.$elem = $("#chats");
+  thiz.$elem = $("#chats");
 
 
 
-  self.server = 'https://api.parse.com/1/classes/chatterbox';
-  self.init = function(){
+  thiz.server = 'https://api.parse.com/1/classes/chatterbox';
+  thiz.init = function(){
 
   };
-  self.chats = [];
-  self.rooms = [];
+  thiz.chats = [];
+  thiz.rooms = [];
 
   var message = {
     username: 'shawndrost',
@@ -18,12 +18,12 @@ var App = function(){
     roomname: '4chan'
   };
 
-  self.refreshView = function(chats, rooms, roomname){
-    chats = chats || self.chats;
-    rooms = rooms || self.rooms;
+  thiz.refreshView = function(chats, rooms, roomname){
+    chats = chats || thiz.chats;
+    rooms = rooms || thiz.rooms;
 
     var roomDropdownView = RoomDropdownView(chats, roomname);
-    self.rooms = roomDropdownView.roomList;
+    thiz.rooms = roomDropdownView.roomList;
 
     if (roomname){
       chats = _.filter(chats,function(elem){
@@ -32,13 +32,13 @@ var App = function(){
     }
     var chatsView = ChatsView(chats);
 
-    self.$elem.html('');
-    self.$elem.append(roomDropdownView.render());
-    self.$elem.append(chatsView.render());
+    thiz.$elem.html('');
+    thiz.$elem.append(roomDropdownView.render());
+    thiz.$elem.append(chatsView.render());
   };
-  self.send = function(message){
+  thiz.send = function(message){
     $.ajax({
-      url: self.server,
+      url: thiz.server,
       type: 'POST',
       data: JSON.stringify(message),
       contentType: 'application/json',
@@ -51,23 +51,23 @@ var App = function(){
     });
   };
 
-  self.addMessage = function(message){
-    self.$elem.append(message);
+  thiz.addMessage = function(message){
+    thiz.$elem.append(message);
   };
 
-  self.clearMessages = function(){
-      self.refreshView([], self.rooms);
+  thiz.clearMessages = function(){
+      thiz.refreshView([], thiz.rooms);
   };
 
-  self.fetch = function(roomname){
+  thiz.fetch = function(roomname){
     $.ajax({
-      url: self.server,
+      url: thiz.server,
       type: 'GET',
       data: {'order': '-roomname'},
       contentType: 'application/json',
       success: function (data) {
-        var chats = self.chats = data.results;
-        self.refreshView(chats, self.rooms, roomname);
+        var chats = thiz.chats = data.results;
+        thiz.refreshView(chats, thiz.rooms, roomname);
       },
       error : function (data) {
         console.error("found an error:", data);
@@ -75,63 +75,63 @@ var App = function(){
     });
   };
   var RoomDropdownView = function(chats, selected){
-    var self = {};
+    var thiz = {};
 
-    self.roomList = _.uniq(_.pluck(chats, 'roomname'));
+    thiz.roomList = _.uniq(_.pluck(chats, 'roomname'));
 
-    self.roomname = selected;
+    thiz.roomname = selected;
 
     var s = $('<select />');
 
 
-    self.render = function(){
-      for(var i = 0; i < this.roomList.length; i++) {
-          $('<option />', {value: this.roomList[i], text: this.roomList[i]}).appendTo(s);
+    thiz.render = function(){
+      for(var i = 0; i < thiz.roomList.length; i++) {
+          $('<option />', {value: thiz.roomList[i], text: thiz.roomList[i]}).appendTo(s);
       }
-      if (this.roomname){
-        s.val(this.roomname);
+      if (thiz.roomname){
+        s.val(thiz.roomname);
       }
       return s;
     };
 
     s.change(function(){
-      self.roomname =  this.selectedOptions[0].value;
-      app.fetch(self.roomname);
+      thiz.roomname =  this.selectedOptions[0].value;
+      app.fetch(thiz.roomname);
     });
 
-    return self;
+    return thiz;
   };
 
   var ChatsView = function(chats){
     var self = {};
     // self._template = "";
-     self.render = function(){
+     thiz.render = function(){
        var toRet = "";
       for(var i = 0; i < chats.length; i++){
         toRet += (new ChatView(chats[i])).render();
       }
       return toRet;
     };
-    return self;
+    return thiz;
   };
   var ChatView = function(chat){
 
-    var self = {};
+    var thiz = {};
 
 
     var usernameDiv = "<div class='username'>"+chat.username+"</div>";
     var messageDiv = "<div class='message'>"+chat.text+"</div>";
     var template = "<div id='"+chat.objectId+"' class='messageBlock'>"+usernameDiv+messageDiv+"</div>";
 
-    self.render = function(){
+    thiz.render = function(){
       return template;
     };
-    return self;
+    return thiz;
   };
 
 
 
-  return self;
+  return thiz;
 };
 
 var app = {};
