@@ -11,23 +11,24 @@ var App = function(){
   };
   thiz.chats = [];
   thiz.rooms = [];
+  thiz.room = '';
 
-  var message = {
-    username: 'shawndrost',
-    text: 'trololo',
-    roomname: '4chan'
+  var refreshDataModel = function(chats,room){
+    /*assumes chats is sorted by room*/
+    thiz.chats = chats;
+    thiz.rooms = _.uniq(_.pluck(chats, 'roomname'));
+    if (room){
+      thiz.room = room;
+    }
   };
 
-  thiz.refreshView = function(chats, rooms, roomname){
-    chats = chats || thiz.chats;
-    rooms = rooms || thiz.rooms;
+  thiz.refreshView = function(){
+    var roomDropdownView = thiz.RoomDropdownView(thiz.rooms, thiz.room);
 
-    var roomDropdownView = thiz.RoomDropdownView(chats, roomname);
-    thiz.rooms = roomDropdownView.roomList;
-
-    if (roomname){
+    var chats = thiz.chats;
+    if (thiz.room && thiz.room !== ''){
       chats = _.filter(chats,function(elem){
-          return elem.roomname === roomname;
+          return elem.roomname === thiz.room;
         });
     }
     var chatsView = thiz.ChatsView(chats);
@@ -56,7 +57,10 @@ var App = function(){
   };
 
   thiz.clearMessages = function(){
-      thiz.refreshView([], thiz.rooms);
+      thiz.chats = [];
+      thiz.room = '';
+      /*TODO: update view to automatically respond to changes in the data model*/
+      thiz.refreshView();
   };
 
   thiz.fetch = function(roomname){
@@ -66,8 +70,8 @@ var App = function(){
       data: {'order': '-roomname'},
       contentType: 'application/json',
       success: function (data) {
-        var chats = thiz.chats = data.results;
-        thiz.refreshView(chats, thiz.rooms, roomname);
+        refreshDataModel(data.results,roomname);
+        thiz.refreshView();
       },
       error : function (data) {
         console.error("found an error:", data);
