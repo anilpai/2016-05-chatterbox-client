@@ -11,6 +11,7 @@
     <!-- your scripts -->
     <script src="env/config.js"></script>
     <script src="scripts/app.js"></script>
+    <script src="scripts/views.js"></script>
     <script type="text/javascript">
     $(document).ready(function(){
       app.fetch();
@@ -20,8 +21,16 @@
   <body>
     <div id="main">
       <h1>chatterbox</h1>
-      <input type="text" placeholder="Send your message here"></input>
-      <a href="#" class="sendChat">Send message</a>
+      <!-- <a href="#" class="sendChat">Send message</a> -->
+      <div id="rooms">
+        Room:
+        <select id="roomSelect">
+        </select>
+      </div>
+      <form action="#" id="send" method="post">
+        <input type="text" name="message" placeholder="Enter you chat here ..." id="message"/>
+        <input type="submit" name="submit" class="submit"/>
+      </form>
       <div id="chats">
       </div>
     </div>

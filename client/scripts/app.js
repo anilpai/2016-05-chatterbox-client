@@ -1,49 +1,94 @@
-var App = function(){
-  var self = {};
-
-  self.$elem = $("#chats");
 
 
+var App = function(username){
+  var thiz = {};
 
-  self.server = 'https://api.parse.com/1/classes/chatterbox';
-  self.init = function(){
+  thiz.$elem = $("#chats");
+  thiz.username = username || 'anonymous';
+  thiz.friends = [];
 
+
+  thiz.server = 'https://api.parse.com/1/classes/chatterbox';
+  thiz.init = function(){
+    var $form = $("#send");
+    var $message = $("#send #message");
+    $form.submit(function(){
+      thiz.handleSubmit($message.val());
+      return false;
+    });
   };
-  self.chats = [];
-  self.rooms = [];
+  thiz.chats = [];
+  thiz.rooms = [];
+  thiz.room = '';
+  thiz.message = '';
 
-  var message = {
-    username: 'shawndrost',
-    text: 'trololo',
-    roomname: '4chan'
+  var refreshDataModel = function(chats,room){
+    /*assumes chats is sorted by room*/
+    thiz.chats = chats;
+    // thiz.rooms = _.uniq(_.pluck(chats, 'roomname'));
+    thiz.rooms = _.pluck(chats, 'roomname');
+    if (room){
+      thiz.rooms.push(room);
+      thiz.room = room;
+    }
+    thiz.rooms = _.uniq(thiz.rooms);
   };
 
-  self.refreshView = function(chats, rooms, roomname){
-    chats = chats || self.chats;
-    rooms = rooms || self.rooms;
+  thiz.refreshView = function(){
+    var roomDropdownView = thiz.RoomDropdownView(thiz.rooms, thiz.room);
 
-    var roomDropdownView = RoomDropdownView(chats, roomname);
-    self.rooms = roomDropdownView.roomList;
-
-    if (roomname){
+    var chats = thiz.chats;
+    if (thiz.room && thiz.room !== ''){
       chats = _.filter(chats,function(elem){
-          return elem.roomname === roomname;
+          return elem.roomname === thiz.room;
         });
     }
-    var chatsView = ChatsView(chats);
+    var chatsView = thiz.ChatsView(chats);
 
-    self.$elem.html('');
-    self.$elem.append(roomDropdownView.render());
-    self.$elem.append(chatsView.render());
+    thiz.$elem.html('');
+    roomDropdownView.render();
+    chatsView.render();
   };
-  self.send = function(message){
+
+  thiz.addMessage = function(message){
+    thiz.chats.push(message);
+    thiz.refreshView();
+  };
+
+  thiz.addRoom = function(room){
+    thiz.rooms.push(room);
+    thiz.refreshView();
+  };
+
+  thiz.addFriend = function(friend){
+    console.log("Add Friend Called", friend);
+    thiz.friends.push(friend);
+    thiz.refreshView();
+  };
+
+  thiz.handleSubmit = function(message){
+    /*TODO: no roomname selected by default*/
+    thiz.send({'roomname':thiz.room,'username': thiz.username,'text':message});
+    console.log("handle submit called", message, "username", thiz.username, "roomname", thiz.room);
+  };
+
+  thiz.clearMessages = function(){
+      thiz.chats = [];
+      thiz.room = '';
+      /*TODO: update view to automatically respond to changes in the data model*/
+      thiz.refreshView();
+  };
+
+  thiz.send = function(message){
+    console.log("sending a message...",message);
     $.ajax({
-      url: self.server,
+      url: thiz.server,
       type: 'POST',
       data: JSON.stringify(message),
       contentType: 'application/json',
       success: function (data) {
-        console.log(data);
+        /*refresh view so we can see our changes*/
+        thiz.fetch(thiz.room);
       },
       error : function (data) {
         console.error("found an error:", data);
@@ -51,90 +96,44 @@ var App = function(){
     });
   };
 
-  self.addMessage = function(message){
-    self.$elem.append(message);
-  };
-
-  self.clearMessages = function(){
-      self.refreshView([], self.rooms);
-  };
-
-  self.fetch = function(roomname){
+  thiz.fetch = function(roomname){
     $.ajax({
-      url: self.server,
+      url: thiz.server,
       type: 'GET',
-      data: {'order': '-roomname'},
+      data: {'order': '-roomname,-created_at'},
       contentType: 'application/json',
       success: function (data) {
-        var chats = self.chats = data.results;
-        self.refreshView(chats, self.rooms, roomname);
+        // console.log("example message", data.results[0]);
+        refreshDataModel(data.results,roomname);
+        thiz.refreshView();
       },
       error : function (data) {
         console.error("found an error:", data);
       }
     });
   };
-  var RoomDropdownView = function(chats, selected){
-    var self = {};
 
-    self.roomList = _.uniq(_.pluck(chats, 'roomname'));
+  App.Views(thiz);
+  return thiz;
 
-    self.roomname = selected;
-
-    var s = $('<select />');
-
-
-    self.render = function(){
-      for(var i = 0; i < this.roomList.length; i++) {
-          $('<option />', {value: this.roomList[i], text: this.roomList[i]}).appendTo(s);
-      }
-      if (this.roomname){
-        s.val(this.roomname);
-      }
-      return s;
-    };
-
-    s.change(function(){
-      self.roomname =  this.selectedOptions[0].value;
-      app.fetch(self.roomname);
-    });
-
-    return self;
-  };
-
-  var ChatsView = function(chats){
-    var self = {};
-    // self._template = "";
-     self.render = function(){
-       var toRet = "";
-      for(var i = 0; i < chats.length; i++){
-        toRet += (new ChatView(chats[i])).render();
-      }
-      return toRet;
-    };
-    return self;
-  };
-  var ChatView = function(chat){
-
-    var self = {};
-
-
-    var usernameDiv = "<div class='username'>"+chat.username+"</div>";
-    var messageDiv = "<div class='message'>"+chat.text+"</div>";
-    var template = "<div id='"+chat.objectId+"' class='messageBlock'>"+usernameDiv+messageDiv+"</div>";
-
-    self.render = function(){
-      return template;
-    };
-    return self;
-  };
-
-
-
-  return self;
 };
 
 var app = {};
 $(document).ready(function(){
-   app = App();
+  var parseQueryString = function() {
+
+    var str = window.location.search;
+    var objURL = {};
+
+    str.replace(
+        new RegExp( "([^?=&]+)(=([^&]*))?", "g" ),
+        function( $0, $1, $2, $3 ){
+            objURL[ $1 ] = $3;
+        }
+    );
+    return objURL;
+  };
+  var qs = parseQueryString();
+   app = App(qs.username);
+   app.init();
 });
