@@ -102,6 +102,14 @@ var App = function(username){
       type: 'GET',
       data: {'order': '-roomname,-created_at'},
       contentType: 'application/json',
+      beforeSend: function(){
+        $('#chats').hide();
+        $('#loading').show();
+      },
+      complete: function(){
+        $('#loading').hide();
+        $('#chats').show();
+      },
       success: function (data) {
         // console.log("example message", data.results[0]);
         refreshDataModel(data.results,roomname);
