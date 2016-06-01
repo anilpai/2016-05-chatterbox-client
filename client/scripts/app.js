@@ -34,8 +34,8 @@ var App = function(){
     var chatsView = thiz.ChatsView(chats);
 
     thiz.$elem.html('');
-    thiz.$elem.append(roomDropdownView.render());
-    thiz.$elem.append(chatsView.render());
+    roomDropdownView.render();
+    chatsView.render();
   };
   thiz.send = function(message){
     $.ajax({
@@ -53,7 +53,17 @@ var App = function(){
   };
 
   thiz.addMessage = function(message){
-    thiz.$elem.append(message);
+    thiz.chats.push(message);
+    thiz.refreshView();
+  };
+
+  thiz.addRoom = function(room){
+    thiz.rooms.push(room);
+    thiz.refreshView();
+  }
+
+  thiz.addFriend = function(friend){
+    console.log("Add Friend Called", friend);
   };
 
   thiz.clearMessages = function(){
@@ -79,11 +89,12 @@ var App = function(){
     });
   };
 
+  App.Views(thiz);
   return thiz;
+
 };
 
 var app = {};
 $(document).ready(function(){
    app = App();
-   App.Views(app);
 });

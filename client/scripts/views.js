@@ -1,34 +1,46 @@
 App.Views = function(thiz){
+
   var RoomDropdownView = thiz.RoomDropdownView = function(rooms, selected){
     var thiz = {};
+    var $elem = $("#roomSelect");
 
-    var s = $('<select />');
+    var wireChangeListener = function(){
 
-
-    thiz.render = function(){
-      for(var i = 0; i < rooms.length; i++) {
-          $('<option />', {value: rooms[i], text: rooms[i]}).appendTo(s);
-      }
-      if (selected){
-        s.val(selected);
-      }
-      return s;
+      $elem.change(function(){
+        console.log('dropdown change fired');
+        app.fetch(this.selectedOptions[0].value);
+      });
     };
 
-    s.change(function(){
-      app.fetch(this.selectedOptions[0].value);
-    });
+    thiz.initialize = function(){
+      /*put stuff that should only be called once here*/
+      wireChangeListener();
+    };
+
+    thiz.render = function(){
+      $elem.html('');
+      for(var i = 0; i < rooms.length; i++) {
+          $('<option />', {value: rooms[i], text: rooms[i]}).appendTo($elem);
+      }
+      if (selected){
+        $elem.val(selected);
+      }
+      return $elem;
+    };
+
+
 
     return thiz;
   };
   var ChatsView = thiz.ChatsView = function(chats){
     var self = {};
+    var $elem = $("#chats");
      thiz.render = function(){
-       var toRet = "";
+      //  var toRet = "";
       for(var i = 0; i < chats.length; i++){
-        toRet += (new ChatView(chats[i])).render();
+        $elem.append((new ChatView(chats[i])).render());
       }
-      return toRet;
+      return $elem;
     };
     return thiz;
   };
@@ -37,13 +49,22 @@ App.Views = function(thiz){
     var thiz = {};
 
 
-    var usernameDiv = "<div class='username'>"+chat.username+"</div>";
-    var messageDiv = "<div class='message'>"+chat.text+"</div>";
-    var template = "<div id='"+chat.objectId+"' class='messageBlock'>"+usernameDiv+messageDiv+"</div>";
 
     thiz.render = function(){
-      return template;
+      var $usernameDiv = $("<div class='username'>"+chat.username+"</div>");
+
+      $usernameDiv.click(function(){
+        app.addFriend(chat.username);
+      });
+      var $messageDiv = $("<div class='message'>"+chat.text+"</div>");
+
+      var $template = $("<div id='"+chat.objectId+"' class='messageBlock'></div>");
+      $template.append($usernameDiv,$messageDiv);
+      return $template;
     };
     return thiz;
   };
+  /*added here so that the events only get wired up once. Shouldn't need these once
+  we have events in the model *grumble grumble**/
+  RoomDropdownView().initialize();
 };
