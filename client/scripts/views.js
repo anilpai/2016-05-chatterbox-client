@@ -1,5 +1,13 @@
 App.Views = function(thiz){
 
+  /*shamelessly stolen from http://stackoverflow.com/questions/1219860/html-encoding-in-javascript-jquery*/
+  App.Views.htmlEncode = function(value){
+    //create a in-memory div, set it's inner text(which jQuery automatically encodes)
+    //then grab the encoded contents back out.  The div never exists on the page.
+    return $('<div/>').text(value).html();
+  };
+
+
   var RoomDropdownView = thiz.RoomDropdownView = function(rooms, selected){
     var thiz = {};
     var $elem = $("#roomSelect");
@@ -8,7 +16,14 @@ App.Views = function(thiz){
 
       $elem.change(function(){
         console.log('dropdown change fired');
+        if(this.selectedOptions[0].value === "addroom"){
+          var room_name = prompt('Enter the room name ?');
+          if(room_name !== undefined){
+            app.addRoom(room_name);
+          }
+        }else{
         app.fetch(this.selectedOptions[0].value);
+      }
       });
     };
 
@@ -19,8 +34,10 @@ App.Views = function(thiz){
 
     thiz.render = function(){
       $elem.html('');
+      $('<option value="addroom">Add Room</option>').appendTo($elem);
       for(var i = 0; i < rooms.length; i++) {
-          $('<option />', {value: rooms[i], text: rooms[i]}).appendTo($elem);
+          var roomVal = App.Views.htmlEncode(rooms[i]);
+          $('<option />', {value: rooms[i], text: roomVal}).appendTo($elem);
       }
       if (selected){
         $elem.val(selected);
@@ -44,6 +61,8 @@ App.Views = function(thiz){
     };
     return thiz;
   };
+
+
   var ChatView = thiz.ChatView = function(chat){
 
     var thiz = {};
@@ -51,15 +70,31 @@ App.Views = function(thiz){
 
 
     thiz.render = function(){
-      var $usernameDiv = $("<div class='username'>"+chat.username+"</div>");
+      var isFriend = false;
+      for(var i=0;i<app.friends.length; i++){
+        if(chat.username === app.friends[i]){
+          isFriend = true;
+        }
+      }
+
+
+
+      var $usernameDiv = $("<div class='username'>"+App.Views.htmlEncode(chat.username)+"</div>");
 
       $usernameDiv.click(function(){
         app.addFriend(chat.username);
       });
-      var $messageDiv = $("<div class='message'>"+chat.text+"</div>");
+      var $messageDiv = $("<div class='message'>"+App.Views.htmlEncode(chat.text)+"</div>");
 
       var $template = $("<div id='"+chat.objectId+"' class='messageBlock'></div>");
       $template.append($usernameDiv,$messageDiv);
+
+      if(isFriend){
+        //$template.prepend("<b>");
+        //$template.append("</b>");
+        $template.addClass("bold");
+      }
+
       return $template;
     };
     return thiz;
