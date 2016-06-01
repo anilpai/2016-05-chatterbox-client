@@ -7,11 +7,16 @@ var App = function(){
 
   thiz.server = 'https://api.parse.com/1/classes/chatterbox';
   thiz.init = function(){
-
+    var $form = $("#send");
+    var $message = $("#send #message");
+    $form.submit(function(){
+      thiz.handleSubmit($message.val());
+    });
   };
   thiz.chats = [];
   thiz.rooms = [];
   thiz.room = '';
+  thiz.message = '';
 
   var refreshDataModel = function(chats,room){
     /*assumes chats is sorted by room*/
@@ -66,6 +71,10 @@ var App = function(){
     console.log("Add Friend Called", friend);
   };
 
+  thiz.handleSubmit = function(message){
+    console.log("handle submit called", message);
+  };
+
   thiz.clearMessages = function(){
       thiz.chats = [];
       thiz.room = '';
@@ -97,4 +106,5 @@ var App = function(){
 var app = {};
 $(document).ready(function(){
    app = App();
+   app.init();
 });
